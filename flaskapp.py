@@ -6,7 +6,7 @@ app.secret_key = 'your_secret_key'  # Required for flash and session
 
 # Function to initialize the database
 def init_db():
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('/home/ubuntu/flaskapp3/users.db', check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
@@ -23,7 +23,7 @@ init_db()
 
 # Function to query user data from the database
 def get_user_by_username(username):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('/home/ubuntu/flaskapp3/users.db', check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
     user = cursor.fetchone()
@@ -32,7 +32,7 @@ def get_user_by_username(username):
 
 # Function to insert new user into the database
 def add_user(username, password):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('/home/ubuntu/flaskapp3/users.db', check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
     conn.commit()
@@ -47,7 +47,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
+
         user = get_user_by_username(username)
         if user and user[2] == password:  # user[2] is the password from the DB
             session['username'] = username
@@ -71,13 +71,13 @@ def logout():
     session.pop('username', None)
     flash('You have been logged out', 'info')
     return redirect(url_for('login'))
-
+    
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
+
         if get_user_by_username(username):
             flash('Username already exists', 'danger')
             return redirect(url_for('register'))
@@ -89,3 +89,7 @@ def register():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+                                                                                                                                           69,1          67%
+                                                                                                                                           1,1           Top
