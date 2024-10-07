@@ -12,7 +12,10 @@ def init_db():
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL
+        password TEXT NOT NULL,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        email TEXT NOT NULL
     )
     ''')
     conn.commit()
@@ -31,10 +34,10 @@ def get_user_by_username(username):
     return user
 
 # Function to insert new user into the database
-def add_user(username, password):
-    conn = sqlite3.connect('/home/ubuntu/flaskapp3/users.db', check_same_thread=False)
+def add_user(username, password, first_name, last_name, email):
+    conn = sqlite3.connect('/home/ubuntu/flaskapp3/users.db')
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+    cursor.execute('INSERT INTO users (username, password, first_name, last_name, email) VALUES (?, ?, ?, ?, ?)', (username, password, first_name, last_name, email))
     conn.commit()
     conn.close()
 
@@ -51,6 +54,9 @@ def login():
         user = get_user_by_username(username)
         if user and user[2] == password:  # user[2] is the password from the DB
             session['username'] = username
+            session['first_name'] = user[3]
+            session['last_name'] = user[4]
+            session['email'] = user[5]
             flash('Login successful!', 'success')
             return redirect(url_for('dashboard'))
         else:
@@ -60,8 +66,12 @@ def login():
 
 @app.route('/dashboard')
 def dashboard():
-    if 'username' in session:
-        return f"Hello, {session['username']}! Welcome to the dashboard."
+        if 'username' in session:
+        return render_template('display.html',
+                               username=session['username'],
+                               first_name=session['first_name'],
+                               last_name=session['last_name'],
+                               email=session['email'])
     else:
         flash('You need to log in first', 'warning')
         return redirect(url_for('login'))
@@ -71,25 +81,29 @@ def logout():
     session.pop('username', None)
     flash('You have been logged out', 'info')
     return redirect(url_for('login'))
-    
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        email = request.form['email']
 
         if get_user_by_username(username):
             flash('Username already exists', 'danger')
             return redirect(url_for('register'))
         else:
-            add_user(username, password)
-            flash('Registration successful! You can now log in.', 'success')
+            add_user(username, password, first_name, last_name, email)
+            session['username'] = username
+            session['first_name'] = first_name
+            session['last_name'] = last_name
+            session['email'] = email
+            flash('Registration successful! Here are your details:', 'success')
             return redirect(url_for('login'))
     return render_template('register.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-                                                                                                                                           69,1          67%
-                                                                                                                                           1,1           Top
+                                                                                                                                           
